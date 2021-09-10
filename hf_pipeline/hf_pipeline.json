@@ -1,0 +1,468 @@
+{
+  "pipelineSpec": {
+    "components": {
+      "comp-preprocess-raw": {
+        "executorLabel": "exec-preprocess-raw",
+        "inputDefinitions": {
+          "parameters": {
+            "dataset_filename": {
+              "type": "STRING"
+            },
+            "dataset_url": {
+              "type": "STRING"
+            },
+            "id2tag_file": {
+              "type": "STRING"
+            },
+            "pretrained_model": {
+              "type": "STRING"
+            },
+            "root_path": {
+              "type": "STRING"
+            },
+            "test_encodings_file": {
+              "type": "STRING"
+            },
+            "test_labels_file": {
+              "type": "STRING"
+            },
+            "train_encodings_file": {
+              "type": "STRING"
+            },
+            "train_labels_file": {
+              "type": "STRING"
+            },
+            "unique_tags_file": {
+              "type": "STRING"
+            },
+            "val_encodings_file": {
+              "type": "STRING"
+            },
+            "val_labels_file": {
+              "type": "STRING"
+            }
+          }
+        },
+        "outputDefinitions": {
+          "artifacts": {
+            "test_encodings_path": {
+              "artifactType": {
+                "schemaTitle": "system.Artifact"
+              }
+            },
+            "test_labels_path": {
+              "artifactType": {
+                "schemaTitle": "system.Artifact"
+              }
+            },
+            "train_encodings_path": {
+              "artifactType": {
+                "schemaTitle": "system.Artifact"
+              }
+            },
+            "train_labels_path": {
+              "artifactType": {
+                "schemaTitle": "system.Artifact"
+              }
+            },
+            "unique_tags_path": {
+              "artifactType": {
+                "schemaTitle": "system.Artifact"
+              }
+            },
+            "val_encodings_path": {
+              "artifactType": {
+                "schemaTitle": "system.Artifact"
+              }
+            },
+            "val_labels_path": {
+              "artifactType": {
+                "schemaTitle": "system.Artifact"
+              }
+            }
+          }
+        }
+      },
+      "comp-train": {
+        "executorLabel": "exec-train",
+        "inputDefinitions": {
+          "artifacts": {
+            "train_encodings": {
+              "artifactType": {
+                "schemaTitle": "system.Artifact"
+              }
+            },
+            "train_labels": {
+              "artifactType": {
+                "schemaTitle": "system.Artifact"
+              }
+            },
+            "unique_tags": {
+              "artifactType": {
+                "schemaTitle": "system.Artifact"
+              }
+            },
+            "val_encodings": {
+              "artifactType": {
+                "schemaTitle": "system.Artifact"
+              }
+            },
+            "val_labels": {
+              "artifactType": {
+                "schemaTitle": "system.Artifact"
+              }
+            }
+          },
+          "parameters": {
+            "batch_size": {
+              "type": "INT"
+            },
+            "epochs": {
+              "type": "INT"
+            },
+            "model": {
+              "type": "STRING"
+            },
+            "root_path": {
+              "type": "STRING"
+            }
+          }
+        },
+        "outputDefinitions": {
+          "artifacts": {
+            "metrics": {
+              "artifactType": {
+                "schemaTitle": "system.ClassificationMetrics"
+              }
+            },
+            "trained_model": {
+              "artifactType": {
+                "schemaTitle": "system.Model"
+              }
+            }
+          },
+          "parameters": {
+            "Output": {
+              "type": "STRING"
+            }
+          }
+        }
+      }
+    },
+    "deploymentSpec": {
+      "executors": {
+        "exec-preprocess-raw": {
+          "container": {
+            "args": [
+              "--executor_input",
+              "{{$}}",
+              "--function_to_execute",
+              "preprocess_raw",
+              "--root-path-output-path",
+              "{{$.inputs.parameters['root_path']}}",
+              "--dataset-url-output-path",
+              "{{$.inputs.parameters['dataset_url']}}",
+              "--dataset-filename-output-path",
+              "{{$.inputs.parameters['dataset_filename']}}",
+              "--pretrained-model-output-path",
+              "{{$.inputs.parameters['pretrained_model']}}",
+              "--train-encodings-file-output-path",
+              "{{$.inputs.parameters['train_encodings_file']}}",
+              "--val-encodings-file-output-path",
+              "{{$.inputs.parameters['val_encodings_file']}}",
+              "--test-encodings-file-output-path",
+              "{{$.inputs.parameters['test_encodings_file']}}",
+              "--train-labels-file-output-path",
+              "{{$.inputs.parameters['train_labels_file']}}",
+              "--val-labels-file-output-path",
+              "{{$.inputs.parameters['val_labels_file']}}",
+              "--test-labels-file-output-path",
+              "{{$.inputs.parameters['test_labels_file']}}",
+              "--unique-tags-file-output-path",
+              "{{$.inputs.parameters['unique_tags_file']}}",
+              "--id2tag-file-output-path",
+              "{{$.inputs.parameters['id2tag_file']}}",
+              "--train-encodings-path-output-path",
+              "{{$.outputs.artifacts['train_encodings_path'].path}}",
+              "--train-labels-path-output-path",
+              "{{$.outputs.artifacts['train_labels_path'].path}}",
+              "--val-encodings-path-output-path",
+              "{{$.outputs.artifacts['val_encodings_path'].path}}",
+              "--val-labels-path-output-path",
+              "{{$.outputs.artifacts['val_labels_path'].path}}",
+              "--test-encodings-path-output-path",
+              "{{$.outputs.artifacts['test_encodings_path'].path}}",
+              "--test-labels-path-output-path",
+              "{{$.outputs.artifacts['test_labels_path'].path}}",
+              "--unique-tags-path-output-path",
+              "{{$.outputs.artifacts['unique_tags_path'].path}}"
+            ],
+            "command": [
+              "sh",
+              "-c",
+              "(PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet                 --no-warn-script-location 'scikit-learn==0.24.2' 'transformers==4.9.1' 'kfp==1.7.0' || PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet                 --no-warn-script-location 'scikit-learn==0.24.2' 'transformers==4.9.1' 'kfp==1.7.0' --user) && \"$0\" \"$@\"",
+              "sh",
+              "-ec",
+              "program_path=$(mktemp -d)\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\npython3 -m kfp.components.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+              "\nfrom kfp.v2.dsl import *\nfrom typing import *\n\ndef preprocess_raw(\n    root_path: str,\n    dataset_url: str,\n    dataset_filename: str,\n    pretrained_model: str,\n    train_encodings_path: Output[Artifact],\n    train_labels_path: Output[Artifact],\n    val_encodings_path: Output[Artifact],\n    val_labels_path: Output[Artifact],\n    test_encodings_path: Output[Artifact],\n    test_labels_path: Output[Artifact],\n    unique_tags_path: Output[Artifact],\n    train_encodings_file: str = \"train_encodings.json\",\n    val_encodings_file: str = \"val_encodings.json\",\n    test_encodings_file: str = \"test_encodings.json\",\n    train_labels_file: str = \"train_labels.json\",\n    val_labels_file: str = \"val_labels.json\",\n    test_labels_file: str = \"test_labels.json\",\n    unique_tags_file: str = \"unique_tags.json\",\n    id2tag_file: str = \"id2tag.json\",\n):\n    import json\n    import os\n    import re\n    import urllib.request\n    from pathlib import Path\n\n    import numpy as np\n    from sklearn.model_selection import train_test_split\n    from transformers import DistilBertTokenizerFast\n\n\n    def read_wnut(file_path:str) -> Tuple[list, list]:\n        \"\"\"\n        https://huggingface.co/transformers/custom_datasets.html#tok-ner\n        \"\"\"\n        file_path = Path(file_path)\n\n        raw_text = file_path.read_text().strip()\n        raw_docs = re.split(r'\\n\\t?\\n', raw_text)\n        token_docs = []\n        tag_docs = []\n        for doc in raw_docs:\n            tokens = []\n            tags = []\n            for line in doc.split('\\n'):\n                token, tag = line.split('\\t')\n                tokens.append(token)\n                tags.append(tag)\n            token_docs.append(tokens)\n            tag_docs.append(tags)\n\n        return token_docs, tag_docs\n\n\n    def encode_tags(tags, encodings, tag2id):\n        \"\"\"\n        https://huggingface.co/transformers/custom_datasets.html#tok-ner\n        \"\"\"\n        labels = [[tag2id[tag] for tag in doc] for doc in tags]\n        encoded_labels = []\n        for doc_labels, doc_offset in zip(labels, encodings.offset_mapping):\n            # create an empty array of -100\n            doc_enc_labels = np.ones(len(doc_offset),dtype=int) * - 100\n            arr_offset = np.array(doc_offset)\n\n            # set labels whose first offset position is 0 \n            # and the second is not 0\n            doc_enc_labels[\n                (arr_offset[:,0] == 0) & (arr_offset[:,1] != 0)\n            ] = doc_labels\n            encoded_labels.append(doc_enc_labels.tolist())\n\n        return encoded_labels\n\n    dataset_path, _ = urllib.request.urlretrieve(\n        dataset_url, \n        os.path.join(root_path, dataset_filename)\n    )\n\n    print(dataset_path)\n\n    texts, tags = read_wnut(dataset_path)\n\n    train_texts, val_test_texts, train_tags, val_test_tags = train_test_split(\n        texts, tags, test_size=.3, random_state=11\n    )\n\n    val_texts, test_texts, val_tags, test_tags = train_test_split(\n        val_test_texts, val_test_tags, test_size=.5, random_state=11\n    )\n\n    unique_tags = set(tag for doc in tags for tag in doc)\n    tag2id = {tag: id for id, tag in enumerate(unique_tags)}\n    id2tag = {id: tag for tag, id in tag2id.items()}\n    print(id2tag)\n\n    tokenizer = DistilBertTokenizerFast.from_pretrained(\n        pretrained_model\n    )\n    tokenizer_path = os.path.join(root_path, \"model\")\n    tokenizer.save_pretrained(tokenizer_path)\n\n    train_encodings = tokenizer(\n        train_texts,\n        is_split_into_words=True,\n        return_offsets_mapping=True,\n        padding=True,\n        truncation=True\n    )\n    val_encodings = tokenizer(\n        val_texts,\n        is_split_into_words=True,\n        return_offsets_mapping=True,\n        padding=True,\n        truncation=True\n    )\n    test_encodings = tokenizer(\n        test_texts,\n        is_split_into_words=True,\n        return_offsets_mapping=True,\n        padding=True,\n        truncation=True\n    )\n\n    train_labels = encode_tags(train_tags, train_encodings, tag2id)\n    val_labels = encode_tags(val_tags, val_encodings, tag2id)\n    test_labels = encode_tags(test_tags, test_encodings, tag2id)\n\n    train_encodings.pop(\"offset_mapping\")\n    val_encodings.pop(\"offset_mapping\")\n    test_encodings.pop(\"offset_mapping\")\n\n    train_encodings_path.path = os.path.join(root_path, train_encodings_file)\n    val_encodings_path.path = os.path.join(root_path, val_encodings_file)\n    test_encodings_path.path = os.path.join(root_path, test_encodings_file)\n    train_labels_path.path = os.path.join(root_path, train_labels_file)\n    val_labels_path.path = os.path.join(root_path, val_labels_file)\n    test_labels_path.path = os.path.join(root_path, test_labels_file)\n    unique_tags_path.path = os.path.join(root_path, unique_tags_file)\n    id2tag_path = os.path.join(root_path, id2tag_file)\n\n    json.dump(train_encodings.data, open(train_encodings_path.path, \"w\"))\n    json.dump(val_encodings.data, open(val_encodings_path.path, \"w\"))\n    json.dump(test_encodings.data, open(test_encodings_path.path, \"w\"))\n    json.dump(train_labels, open(train_labels_path.path, \"w\"))\n    json.dump(val_labels, open(val_labels_path.path, \"w\"))\n    json.dump(test_labels, open(test_labels_path.path, \"w\"))\n    json.dump(list(unique_tags), open(unique_tags_path.path, \"w\"))\n    json.dump(id2tag, open(id2tag_path, \"w\"))\n\n"
+            ],
+            "image": "python:3.7"
+          }
+        },
+        "exec-train": {
+          "container": {
+            "args": [
+              "--executor_input",
+              "{{$}}",
+              "--function_to_execute",
+              "train",
+              "--root-path-output-path",
+              "{{$.inputs.parameters['root_path']}}",
+              "--model-output-path",
+              "{{$.inputs.parameters['model']}}",
+              "--batch-size-output-path",
+              "{{$.inputs.parameters['batch_size']}}",
+              "--epochs-output-path",
+              "{{$.inputs.parameters['epochs']}}",
+              "--unique-tags-output-path",
+              "{{$.inputs.artifacts['unique_tags'].path}}",
+              "--train-encodings-output-path",
+              "{{$.inputs.artifacts['train_encodings'].path}}",
+              "--train-labels-output-path",
+              "{{$.inputs.artifacts['train_labels'].path}}",
+              "--val-encodings-output-path",
+              "{{$.inputs.artifacts['val_encodings'].path}}",
+              "--val-labels-output-path",
+              "{{$.inputs.artifacts['val_labels'].path}}",
+              "--trained-model-output-path",
+              "{{$.outputs.artifacts['trained_model'].path}}",
+              "--metrics-output-path",
+              "{{$.outputs.artifacts['metrics'].path}}",
+              "--Output",
+              "{{$.outputs.parameters['Output'].output_file}}"
+            ],
+            "command": [
+              "sh",
+              "-c",
+              "(PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet                 --no-warn-script-location 'scikit-learn==0.24.2' 'transformers==4.9.1' 'kfp==1.7.0' || PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet                 --no-warn-script-location 'scikit-learn==0.24.2' 'transformers==4.9.1' 'kfp==1.7.0' --user) && \"$0\" \"$@\"",
+              "sh",
+              "-ec",
+              "program_path=$(mktemp -d)\nprintf \"%s\" \"$0\" > \"$program_path/ephemeral_component.py\"\npython3 -m kfp.components.executor_main                         --component_module_path                         \"$program_path/ephemeral_component.py\"                         \"$@\"\n",
+              "\nfrom kfp.v2.dsl import *\nfrom typing import *\n\ndef train(\n    root_path: str,\n    model: str,\n    batch_size: int,\n    epochs: int,\n    unique_tags: Input[Artifact],\n    train_encodings: Input[Artifact],\n    train_labels: Input[Artifact],\n    val_encodings: Input[Artifact],\n    val_labels: Input[Artifact],\n    trained_model: Output[Model],\n    metrics: Output[ClassificationMetrics],\n) -> str:\n    import json\n    import os\n    import logging\n    from transformers import TFDistilBertForTokenClassification\n    import tensorflow as tf\n\n    print(\"GPU AVAILABLE: \", tf.test.is_gpu_available())\n\n    unique_tags = json.load(open(unique_tags.path))\n\n    train_dataset = tf.data.Dataset.from_tensor_slices((\n        json.load(open(train_encodings.path)),\n        json.load(open(train_labels.path))\n    ))\n    val_dataset = tf.data.Dataset.from_tensor_slices((\n        json.load(open(val_encodings.path)),\n        json.load(open(val_labels.path))\n    ))\n\n    model = TFDistilBertForTokenClassification.from_pretrained(\n        model, num_labels=len(unique_tags)\n    )\n\n    optimizer = tf.keras.optimizers.Adam(learning_rate=5e-5)\n    model.compile(optimizer=optimizer, loss=model.compute_loss)\n\n    logdir = os.path.join(root_path, \"logs\")\n    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)\n\n    checkpoint_path = os.path.join(\n        root_path,\n        \"model\",\n        \"checkpoints\",\n        \"cp-{epoch:04d}.ckpt\"\n    )\n    cp_callback = tf.keras.callbacks.ModelCheckpoint(\n        filepath=checkpoint_path, \n        verbose=1, \n        save_weights_only=True,\n        save_freq=5*batch_size\n    )\n\n    history = model.fit(\n        train_dataset.shuffle(1000).batch(batch_size), \n        epochs=epochs,\n        batch_size=batch_size,\n        callbacks=[cp_callback, tensorboard_callback],\n        validation_data=val_dataset\n    )\n\n    model_path = os.path.join(root_path, \"model\")\n    model.save_pretrained(model_path)\n\n    trained_model.metadata[\"loss\"] = history.history.get(\"loss\")\n    trained_model.metadata[\"val_loss\"] = history.history.get(\"val_loss\")\n\n"
+            ],
+            "image": "tensorflow/tensorflow:2.5.1-gpu",
+            "resources": {
+              "accelerator": {
+                "count": "1",
+                "type": "NVIDIA_TESLA_T4"
+              }
+            }
+          }
+        }
+      }
+    },
+    "pipelineInfo": {
+      "name": "hf-pipeline"
+    },
+    "root": {
+      "dag": {
+        "outputs": {
+          "artifacts": {
+            "train-metrics": {
+              "artifactSelectors": [
+                {
+                  "outputArtifactKey": "metrics",
+                  "producerSubtask": "train"
+                }
+              ]
+            }
+          }
+        },
+        "tasks": {
+          "preprocess-raw": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-preprocess-raw"
+            },
+            "inputs": {
+              "parameters": {
+                "dataset_filename": {
+                  "componentInputParameter": "dataset_filename"
+                },
+                "dataset_url": {
+                  "componentInputParameter": "dataset_url"
+                },
+                "id2tag_file": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "id2tag.json"
+                    }
+                  }
+                },
+                "pretrained_model": {
+                  "componentInputParameter": "pretrained_model"
+                },
+                "root_path": {
+                  "componentInputParameter": "root_path"
+                },
+                "test_encodings_file": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "test_encodings.json"
+                    }
+                  }
+                },
+                "test_labels_file": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "test_labels.json"
+                    }
+                  }
+                },
+                "train_encodings_file": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "train_encodings.json"
+                    }
+                  }
+                },
+                "train_labels_file": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "train_labels.json"
+                    }
+                  }
+                },
+                "unique_tags_file": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "unique_tags.json"
+                    }
+                  }
+                },
+                "val_encodings_file": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "val_encodings.json"
+                    }
+                  }
+                },
+                "val_labels_file": {
+                  "runtimeValue": {
+                    "constantValue": {
+                      "stringValue": "val_labels.json"
+                    }
+                  }
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "preprocess-raw"
+            }
+          },
+          "train": {
+            "cachingOptions": {
+              "enableCache": true
+            },
+            "componentRef": {
+              "name": "comp-train"
+            },
+            "dependentTasks": [
+              "preprocess-raw"
+            ],
+            "inputs": {
+              "artifacts": {
+                "train_encodings": {
+                  "taskOutputArtifact": {
+                    "outputArtifactKey": "train_encodings_path",
+                    "producerTask": "preprocess-raw"
+                  }
+                },
+                "train_labels": {
+                  "taskOutputArtifact": {
+                    "outputArtifactKey": "train_labels_path",
+                    "producerTask": "preprocess-raw"
+                  }
+                },
+                "unique_tags": {
+                  "taskOutputArtifact": {
+                    "outputArtifactKey": "unique_tags_path",
+                    "producerTask": "preprocess-raw"
+                  }
+                },
+                "val_encodings": {
+                  "taskOutputArtifact": {
+                    "outputArtifactKey": "val_encodings_path",
+                    "producerTask": "preprocess-raw"
+                  }
+                },
+                "val_labels": {
+                  "taskOutputArtifact": {
+                    "outputArtifactKey": "val_labels_path",
+                    "producerTask": "preprocess-raw"
+                  }
+                }
+              },
+              "parameters": {
+                "batch_size": {
+                  "componentInputParameter": "batch_size"
+                },
+                "epochs": {
+                  "componentInputParameter": "epochs"
+                },
+                "model": {
+                  "componentInputParameter": "pretrained_model"
+                },
+                "root_path": {
+                  "componentInputParameter": "root_path"
+                }
+              }
+            },
+            "taskInfo": {
+              "name": "train"
+            }
+          }
+        }
+      },
+      "inputDefinitions": {
+        "parameters": {
+          "accelerator": {
+            "type": "STRING"
+          },
+          "batch_size": {
+            "type": "INT"
+          },
+          "dataset_filename": {
+            "type": "STRING"
+          },
+          "dataset_url": {
+            "type": "STRING"
+          },
+          "epochs": {
+            "type": "INT"
+          },
+          "pretrained_model": {
+            "type": "STRING"
+          },
+          "root_path": {
+            "type": "STRING"
+          }
+        }
+      },
+      "outputDefinitions": {
+        "artifacts": {
+          "train-metrics": {
+            "artifactType": {
+              "schemaTitle": "system.ClassificationMetrics"
+            }
+          }
+        }
+      }
+    },
+    "schemaVersion": "2.0.0",
+    "sdkVersion": "kfp-1.7.0"
+  },
+  "runtimeConfig": {}
+}
