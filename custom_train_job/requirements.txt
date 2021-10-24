@@ -1,0 +1,5 @@
+google-cloud-storage==1.37.0
+python-dotenv==0.17.0
+tensorflow-text==2.6.0
+tf-models-official==2.6.0
+pyparsing==2.4.7
