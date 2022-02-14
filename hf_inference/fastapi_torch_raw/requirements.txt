@@ -1,0 +1,4 @@
+torch @ https://download.pytorch.org/whl/cpu/torch-1.10.2%2Bcpu-cp38-cp38-linux_x86_64.whl
+transformers==4.16.2
+fastapi==0.73.0
+uvicorn==0.15.0
