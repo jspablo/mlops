@@ -56,6 +56,7 @@ class ONNXPipeline(ZeroShotClassificationPipeline):
 
         self.model_dir = model.replace("model.onnx", "")
         self.model = InferenceSession(model)
+        self.label2id = label2id
 
     def _forward(self, inputs):
         candidate_label = inputs["candidate_label"]
@@ -80,20 +81,19 @@ class ONNXPipeline(ZeroShotClassificationPipeline):
 
     @property
     def entailment_id(self):
-        with open(os.path.join(self.model_dir, "config.json")) as f:
-            label2id = json.load(f).get("label2id")
-
-        for label, ind in label2id.items():
+        for label, ind in self.label2id.items():
             if label.lower().startswith("entail"):
                 return ind
         return -1
 
 
 model_name = os.environ.get("MODEL_NAME", "valhalla/distilbart-mnli-12-6")
-model_dir = os.environ.get("MODEL_DIR", "mnli_onnx_model/model.onnx")
-pipeline_name = "zero-shot-classification"
+model_file = os.environ.get("MODEL_FILE", "mnli_onnx_model/model.onnx") 
+model_dir = os.environ.get("MODEL_DIR", "mnli_onnx_model")
 tokenizer = BartTokenizer.from_pretrained(model_name)
-classifier = ONNXPipeline(model=model_dir, tokenizer=tokenizer)
+with open(os.path.join(model_dir, "config.json")) as f:
+    label2id = json.load(f).get("label2id")
+classifier = ONNXPipeline(model=model_file, tokenizer=tokenizer, label2id=label2id)
 
 
 @app.get("/predict", response_model=PredictionResult)
